@@ -524,7 +524,7 @@ If you are using alias1 model, make sure that CAI is >0.4.0 version and here you
 OPENAI_API_KEY="sk-1234"
 OLLAMA=""
 ALIAS_API_KEY="<sk-your-key>"  # note, add yours
-CAI_STEAM=False
+CAI_STREAM=False
 CAI_MODEL="alias1"
 ```
 
@@ -549,17 +549,17 @@ CAI focuses on making cybersecurity agent **coordination** and **execution** lig
 
 ```
                   ┌───────────────┐           ┌───────────┐
-                  │      HITL     │◀────────▶│   Turns   │
+                  │      HITL     │◀─────-───▶│   Turns   │
                   └───────┬───────┘           └───────────┘
                           │
                           ▼
 ┌───────────┐       ┌───────────┐       ┌───────────┐      ┌───────────┐
-│  Patterns │◀────▶│  Handoffs │◀───▶ │   Agents  │◀───▶│    LLMs   │
+│  Patterns │◀──-──▶│  Handoffs │◀──-─▶ │   Agents  │◀──-─▶│    LLMs   │
 └───────────┘       └─────┬─────┘       └─────┬─────┘      └───────────┘
                           │                   │
                           │                   ▼
 ┌────────────┐       ┌────┴──────┐       ┌───────────┐     ┌────────────┐
-│ Extensions │◀────▶│  Tracing  │       │   Tools   │◀──▶│ Guardrails │
+│ Extensions │◀────▶ │  Tracing  │       │   Tools   │◀──▶ │ Guardrails │
 └────────────┘       └───────────┘       └───────────┘     └────────────┘
                                               │
                           ┌─────────────┬─────┴────┬─────────────┐
