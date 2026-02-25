@@ -1,0 +1,8 @@
+# Nmap 7.95 scan initiated Mon Feb 23 16:57:51 2026 as: /usr/lib/nmap/nmap -oN scan.txt 10.129.2.202
+Nmap scan report for 10.129.2.202
+Host is up (0.025s latency).
+Not shown: 999 closed tcp ports (reset)
+PORT   STATE SERVICE
+23/tcp open  telnet
+
+# Nmap done at Mon Feb 23 16:57:52 2026 -- 1 IP address (1 host up) scanned in 0.60 seconds
