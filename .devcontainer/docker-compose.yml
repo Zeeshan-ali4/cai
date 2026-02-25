@@ -29,9 +29,20 @@ services:
   # Metasploit Framework with RPC daemon
   metasploit:
     image: metasploitframework/metasploit-framework:latest
-    environment:
-      - MSF_RPC_PASSWORD=msfrpc
-    entrypoint: ["./msfrpcd", "-P", "msfrpc", "-a", "0.0.0.0", "-p", "55553", "-S", "false", "-f"]
+    working_dir: /usr/src/metasploit-framework
+    entrypoint:
+      # - /opt/metasploit-framework/bin/msfrpcd
+      - ruby
+      - ./msfrpcd
+      - -U
+      - msf
+      - -P
+      - msfrpc
+      - -a
+      - 0.0.0.0
+      - -p
+      - "55553"
+      - -f
     networks:
       cainet:
         ipv4_address: 192.168.3.20
@@ -259,6 +270,8 @@ volumes:
 #################
 networks:
   cainet:
+    # external: true
+    # name: cai_devcontainer_cainet
     ipam:
       driver: default
       config:

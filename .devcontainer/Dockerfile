@@ -114,3 +114,5 @@ RUN apt-get remove -y python3-jsonschema && \
     apt-get remove -y python3-uvicorn && \
     apt-get remove -y python3-fastapi && \
     apt-get autoremove -y
+
+RUN pip install pymetasploit3
