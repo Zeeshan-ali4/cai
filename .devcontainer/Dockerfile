@@ -116,3 +116,22 @@ RUN apt-get remove -y python3-jsonschema && \
     apt-get autoremove -y
 
 RUN pip install pymetasploit3
+
+# ------------------------------------------------------------
+# Install CAI from this repo at build time (so runtime needs no internet)
+# Build context is repo root (..), so pyproject.toml and src/ are available.
+# ------------------------------------------------------------
+WORKDIR /opt/cai
+
+# Copy only what we need to install the package
+COPY pyproject.toml /opt/cai/pyproject.toml
+COPY README.md /opt/cai/README.md
+COPY src /opt/cai/src
+
+# Install build backend + CAI package
+RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel \
+ && python3 -m pip install --no-cache-dir hatchling \
+ && python3 -m pip install --no-cache-dir .
+
+# Quick sanity check
+RUN command -v cai && cai --help || true
