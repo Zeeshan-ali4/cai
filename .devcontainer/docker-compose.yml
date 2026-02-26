@@ -4,6 +4,46 @@ version: '3'
 # SERVICES
 #################
 services:
+
+  #Postgres
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: msf
+      POSTGRES_PASSWORD: msf
+      POSTGRES_DB: msf
+    volumes:
+      - msf-db-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+
+  # Gluetun
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      - ../gluetun:/gluetun
+    environment:
+      - VPN_SERVICE_PROVIDER=custom
+      - VPN_TYPE=openvpn
+      - OPENVPN_CUSTOM_CONFIG=/gluetun/htb.ovpn
+      - TZ=Europe/London
+      # - FIREWALL_OUTBOUND_SUBNETS=192.168.3.0/24
+      - FIREWALL=off
+      - DNS_KEEP_NAMESERVER=on
+    healthcheck:
+      disable: true
+    restart: unless-stopped
+    networks:
+      cainet:
+        ipv4_address: 192.168.3.2
+
   # Developer environment
   devenv:
     build:
@@ -18,13 +58,14 @@ services:
       # Mount Metasploit MCP script into the workspace
       - ../msf_mcp_stdio.py:/workspace/msf_mcp_stdio.py:ro
     command: /bin/sh -c "while sleep 10; do :; done"
-    networks:
-      cainet:
-        ipv4_address: 192.168.3.5
+    depends_on:
+      - gluetun
+    network_mode: "service:gluetun" 
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
     privileged: true
+ 
 
   # Metasploit Framework with RPC daemon
   metasploit:
@@ -43,12 +84,15 @@ services:
       - -p
       - "55553"
       - -f
-    networks:
-      cainet:
-        ipv4_address: 192.168.3.20
+    depends_on:
+      - gluetun
+      - postgres
+    network_mode: "service:gluetun"
     volumes:
       - msf-data:/home/msf/.msf4
     restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://msf:msf@127.0.0.1:5432/msf
 
   # # Vulnhub vulnerable machine (Hackable II) SUGGESTION: Comment this and use PentestPerf
   # hackableii:
@@ -264,6 +308,7 @@ services:
 #################
 volumes:
   msf-data:  # Persists Metasploit database and configs between restarts
+  msf-db-data:
 
 #################
 # NETWORKS
