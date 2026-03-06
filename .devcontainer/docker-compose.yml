@@ -22,7 +22,6 @@ services:
   # Gluetun
   gluetun:
     image: qmcgaw/gluetun:latest
-    container_name: gluetun
     cap_add:
       - NET_ADMIN
     devices:
@@ -37,6 +36,7 @@ services:
       # - FIREWALL_OUTBOUND_SUBNETS=192.168.3.0/24
       - FIREWALL=off
       - DNS_KEEP_NAMESERVER=on
+      - HEALTH_TARGET_ADDRESSES=127.0.0.1:9999
     healthcheck:
       disable: true
     restart: unless-stopped
@@ -58,9 +58,8 @@ services:
       # Mount Metasploit MCP script into the workspace
       - ../msf_mcp_stdio.py:/workspace/msf_mcp_stdio.py:ro
     command: /bin/sh -c "while sleep 10; do :; done"
-    depends_on:
-      - gluetun
-    network_mode: "service:gluetun" 
+    networks:
+      - cainet
     cap_add:
       - NET_ADMIN
       - SYS_ADMIN
@@ -71,19 +70,14 @@ services:
   metasploit:
     image: metasploitframework/metasploit-framework:latest
     working_dir: /usr/src/metasploit-framework
-    entrypoint:
-      # - /opt/metasploit-framework/bin/msfrpcd
-      - ruby
-      - ./msfrpcd
-      - -U
-      - msf
-      - -P
-      - msfrpc
-      - -a
-      - 0.0.0.0
-      - -p
-      - "55553"
-      - -f
+    entrypoint: ["sh", "-c"]
+    command: 
+      - |
+        mkdir -p /home/msf/.msf4 &&
+        ln -sf /usr/src/metasploit-framework/msfconsole /usr/local/bin/msfconsole &&
+        printf 'production:\n  adapter: postgresql\n  database: msf\n  username: msf\n  password: msf\n  host: 127.0.0.1\n  port: 5432\n  pool: 5\n  timeout: 5\n' > /home/msf/.msf4/database.yml &&
+        printf 'production:\n  adapter: postgresql\n  database: msf\n  username: msf\n  password: msf\n  host: 127.0.0.1\n  port: 5432\n  pool: 5\n  timeout: 5\n' > /usr/src/metasploit-framework/config/database.yml &&
+        ruby ./msfrpcd -U msf -P msfrpc -a 0.0.0.0 -p 55553 -f
     depends_on:
       - gluetun
       - postgres
@@ -93,6 +87,7 @@ services:
     restart: unless-stopped
     environment:
       - DATABASE_URL=postgres://msf:msf@127.0.0.1:5432/msf
+
 
   # # Vulnhub vulnerable machine (Hackable II) SUGGESTION: Comment this and use PentestPerf
   # hackableii:
@@ -315,9 +310,9 @@ volumes:
 #################
 networks:
   cainet:
-    # external: true
-    # name: cai_devcontainer_cainet
-    ipam:
-      driver: default
-      config:
-        - subnet: 192.168.3.0/24
+    external: true
+    name: cai_devcontainer_cainet
+    # ipam:
+      # driver: default
+      # config:
+      #   - subnet: 192.168.3.0/24
